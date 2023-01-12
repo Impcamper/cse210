@@ -12,7 +12,8 @@ class Program
         while(x!=0){
             Console.Write("Enter number");
             x = int.Parse(Console.ReadLine());
-            numbers.Add(x);
+            if (x!=0){
+            numbers.Add(x);}
         }
         foreach(int num in numbers){
             temp=temp+num;
