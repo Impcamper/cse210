@@ -11,18 +11,20 @@ class Program
             Console.WriteLine("1 - Write new Entry");
             Console.WriteLine("2 - Display entries");
             Console.WriteLine("3 - Save to file");
-            Console.WriteLine("4 - Load to file");
+            Console.WriteLine("4 - Load from file");
             Console.WriteLine("5 - Exit");
             menue = int.Parse(Console.ReadLine());
-            if (menue==1){Journal1.addEntry()}
+            if (menue==1){Journal1.addEntry();}
             else if(menue==2){Journal1.display();}
             else if(menue==3){
                 Console.WriteLine("Enter file name");
                 file=Console.ReadLine();
+                Journal1.save(file);
             }
             else if(menue==4){
                 Console.WriteLine("Enter file name");
                 file=Console.ReadLine();
+                Journal1.load(file);
             }
         }
     }
@@ -46,7 +48,7 @@ public class Journal{
     public void save(string filename){
         using (StreamWriter writter = new StreamWriter(filename)){
             foreach(Entry x in _entries){
-                writter.WriteLine(x);
+                writter.WriteLine(x.asString());
             }
         }
     }
@@ -62,7 +64,7 @@ public class Entry{
     public Entry(){}
     public void enterEntry(){
         var number = new Random();
-        _entry = _prompts[number.Next(1,6)];
+        _entry = _prompts[number.Next(1,5)];
         Console.Write(_entry);
         _entry= _entry+Console.ReadLine();
         DateTime time = DateTime.Now;
@@ -72,6 +74,9 @@ public class Entry{
     }
     public void loadfile(string input){
         _entry=input;
+    }
+    public string asString(){
+        return _entry;
     }
     public void displayEntry(){
         Console.WriteLine(_entry);
