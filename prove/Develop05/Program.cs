@@ -19,7 +19,7 @@ class Program
         int choice=0;
         while (choice!=7){
             Console.WriteLine("Menu Options:");
-            Console.WriteLine("  1. Create new Goal\n  2. List Goals\n  3. Save\n  4. Load\n  5.Record activity\n 6. Player Info\n 7. Quit");
+            Console.WriteLine("  1. Create new Goal\n  2. List Goals\n  3. Save\n  4. Load\n  5. Record activity\n  6. Player Info\n  7. Quit");
             Console.Write("Select a Choice: ");
             choice=int.Parse(Console.ReadLine());
             Console.WriteLine();
@@ -44,25 +44,26 @@ public class Goal{
     public virtual void DispayGoal(){
         Console.WriteLine("You should never see this line.");
     }
-    public void SetGoal(string goal, string action, int times){
-        _Goal=goal;
-        _Actions=action;
-        _times=times;
-    }
     public virtual void Record(Experience bar){
         _times++;
+    }
+    public virtual string GetInfo(){
+        return _Goal+","+_Actions+","+_times;
     }
 }
 public class Simple :Goal{
     //need to check if compleated somehow
 
     public Simple(string goal, string action):base(goal,action){
-
+        
+    }
+    public Simple(string goal, string action,int times):base(goal,action){
+        _times=times;
     }
     public override void DispayGoal()
     {
         Console.Write($"{_Goal} ({_Actions})");
-        if(_times>=1){Console.WriteLine(", Incomplete");}
+        if(_times<1){Console.WriteLine(", Incomplete");}
         else{Console.WriteLine(", Complete!");}
     }
     public override void Record(Experience bar){
@@ -74,11 +75,17 @@ public class Simple :Goal{
             bar.AddXP(20);
         }
     }
+    public override string GetInfo(){
+        return "Simple,"+_Goal+","+_Actions+","+_times;
+    }
 }
 public class Eternal :Goal{
     
     public Eternal(string goal, string action):base(goal,action){
         
+    }
+    public Eternal(string goal, string action, int times):base(goal,action){
+        _times=times;
     }
     public override void DispayGoal()
     {
@@ -88,12 +95,19 @@ public class Eternal :Goal{
         _times++;
         bar.AddXP(20);
     }
+    public override string GetInfo(){
+        return "Endless,"+_Goal+","+_Actions+","+_times;
+    }
 }
 public class Checklist :Goal{
 
     int _total;
     public Checklist(string goal, string action, int total):base(goal,action){
         _total=total;
+    }
+    public Checklist(string goal, string action, int total, int times):base(goal,action){
+        _total=total;
+        _times=times;
     }
     public override void DispayGoal()
     {
@@ -109,31 +123,34 @@ public class Checklist :Goal{
             bar.AddXP(20);
         }
     }
-    public void SetCheck(string goal, string action, int times, int total){
-        _Goal=goal;
-        _Actions=action;
-        _times=times;
-        _total=total;
+    public override string GetInfo(){
+        return "Checklist,"+_Goal+","+_Actions+","+_times+","+_total;
     }
 }
 public class Experience{
-        int _xpbar;
+        int _xpbar=0;
     public int AddXP(int xp){
 
-        int newxp=_xpbar=+xp;
-        if(newxp/100>_xpbar/100){
+        int newxp=_xpbar+xp;
+        if(Convert.ToInt32(Math.Floor(Convert.ToDouble(newxp)/100))>Convert.ToInt32(Math.Floor(Convert.ToDouble(_xpbar)/100))){
             Levelup();
         }
         _xpbar=newxp;
-        return _xpbar/100;
+        return Convert.ToInt32(Math.Floor(Convert.ToDouble(_xpbar)/100));
     }
     public void Levelup(){
-        Console.WriteLine("Congrates! you have leveled up!");
+        Console.WriteLine("Congrates! You have leveled up!");
+    }
+    public string GetXp(){
+        return _xpbar.ToString();
+    }
+    public void Set(int xp){
+        _xpbar=xp;
     }
 }
 public class Player{
-    List<Goal> _goals;
-    Experience xp;
+    List<Goal> _goals= new List<Goal>();
+    Experience xp= new Experience();
     string _username;
     int _level=0;
     public Player(string name){
@@ -164,6 +181,7 @@ public class Player{
         int choice=int.Parse(Console.ReadLine());
         Console.WriteLine("Give a title for the goal: ");
         string goal=Console.ReadLine();
+        Console.WriteLine("Give a discription for the goal: ");
         string discription=Console.ReadLine();
         if(choice==1){_goals.Add(new Simple(goal,discription));}
         else if(choice==2){_goals.Add(new Eternal(goal,discription));}
@@ -181,9 +199,36 @@ public class Player{
     public void Load(){
         //would load the goals and player data into program
         //Might want to move this out?
-        
+        Console.WriteLine("Give file name to load from: ");
+        string name=Console.ReadLine();
+        string[] lines=System.IO.File.ReadAllLines(name);
+        foreach(string data in lines){
+            string[] parts = data.Split(",");
+            if(parts[0]=="Simple"){
+                _goals.Add(new Simple(parts[1],parts[2],int.Parse(parts[3])));
+            }
+            else if(parts[0]=="Endless"){
+                _goals.Add(new Eternal(parts[1],parts[2],int.Parse(parts[3])));
+            }
+            else if(parts[0]=="Checklist"){
+                _goals.Add(new Checklist(parts[1],parts[2],int.Parse(parts[3]),int.Parse(parts[4])));
+            }
+            else{
+                _username=parts[0];
+                xp.Set(int.Parse(parts[1]));
+            }
+        }
     }
     public void Save(){
         //Saves goals and player data into a file
+        Console.WriteLine("Give file name to save to: ");
+        string name=Console.ReadLine();
+        using (StreamWriter file = new StreamWriter(name)){
+
+            file.WriteLine($"{_username},{xp.GetXp()}");
+            foreach (Goal x in _goals){
+                file.WriteLine(x.GetInfo());
+            }
+        }
     }
 }
