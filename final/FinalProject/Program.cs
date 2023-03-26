@@ -30,9 +30,9 @@ public class Player{
         return _attack;
     }
     public void Damage(int dmg){
-        _hp=-dmg;
-        if(_hp>=0){
-            Console.WriteLine("ded");
+        _hp=_hp-dmg;
+        if(_hp<=0){
+            Console.WriteLine("player ded");
         }
     }
 }
@@ -81,9 +81,9 @@ public class Monster{
         }
     }
     public void Damage(int dmg){
-        _hp=-dmg;
-        if(_hp>=0){
-            Console.WriteLine("ded");
+        _hp=_hp-dmg;
+        if(_hp<=0){
+            Console.WriteLine("monster ded");
         }
     }
 }
