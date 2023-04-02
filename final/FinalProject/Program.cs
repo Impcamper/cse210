@@ -31,7 +31,7 @@ class Program
 
         Console.WriteLine("Enter how much health the player should have: ");
         health=int.Parse(Console.ReadLine());
-        Console.WriteLine("Enter how much health the player should do: ");
+        Console.WriteLine("Enter how much damage the player should do: ");
         damge=int.Parse(Console.ReadLine());
         //player type
         while (choice!=1&choice!=2&choice!=3){
@@ -54,9 +54,11 @@ class Program
         choice=-1;
         while(choice!=0){
             Console.WriteLine($"Action: 1-attack, 2-{special}, 0-end");
-            if(choice==1){A.Attack();}
-            if(choice==2){A.Special();}
-            //find way to end if someone died.
+            Boolean end =false;
+            if(choice==1){end=A.Attack();}
+            if(choice==2){end=A.Special();}
+            //find way to end if someone died. return true false?
+            if(end==true){break;}
             choice=int.Parse(Console.ReadLine());
         }
     }
@@ -71,64 +73,81 @@ public class Player{
         _attack=attck;
         _enemy=thing;
     }
-    public virtual void Attack(){
+    public virtual Boolean Attack(){
         Random r = new Random();
-        _enemy.Damage(r.Next(_attack-1, _attack+1));
-        Damage(_enemy.Attackloop());
+        bool check;
+        check=_enemy.Damage(r.Next(_attack-1, _attack+1));
+        if(check==true){return true;}
+        check=Damage(_enemy.Attackloop());
+        if(check==true){return true;}
+        return false;
     }
-    public virtual void Special(){
-
+    public virtual Boolean Special(){
+        return false;
     }
-    public void Damage(int dmg){
+    public Boolean Damage(int dmg){
         //
         if(dmg<0){dmg=0;}
         _hp=_hp-dmg;
         
         if(_hp<=0){
             Console.WriteLine("You are dead");
+            return true;
         }
         else{
-            Console.WriteLine($"You took {dmg} damge, {_hp} left");
+            Console.WriteLine($"You took {dmg} damge, {_hp} hp left");
+            return false;
         }
     }
 }
 public class Melee:Player{
     int _defense;
-    public override void Attack(){
+    public override Boolean Attack(){
         Random r = new Random();
-        _enemy.Damage(r.Next(_attack-1, _attack+1));
-        Damage(_enemy.Attackloop()-_defense);
+        bool check;
+        check=_enemy.Damage(r.Next(_attack-1, _attack+1));
+        if(check==true){return true;}
+        check=Damage(_enemy.Attackloop()-_defense);
+        if(check==true){return true;}
         if(_defense>0){_defense=_defense-1;}
+        return false;
     }
     public Melee(int hp, int attck,Monster thing):base(hp,attck,thing){
 
     }
-    public override void Special(){
+    public override Boolean Special(){
         //block damge over turns?
         _defense=3;
-        Damage(_enemy.Attackloop()-_defense);
-        if(_defense>0){_defense=_defense-1;}
         Console.WriteLine("defended");
+        bool check=Damage(_enemy.Attackloop()-_defense);
+        if(check==true){return true;}
+        if(_defense>0){_defense=_defense-1;}
+        return false;
     }
 }
 public class Ranged:Player{
     public Ranged(int hp, int attck,Monster thing):base(hp,attck,thing){
 
     }
-    public override void Special(){
+    public override Boolean Special(){
         //avoid damge
         Console.WriteLine("You avoid "+_enemy.Attackloop()+"damge");
+        return false;
     }
 }
 public class Skill:Player{
     public Skill(int hp, int attck,Monster thing):base(hp,attck,thing){
 
     }
-    public override void Special(){
+    public override Boolean Special(){
         int dmg=_enemy.Attackloop();
-        Damage(dmg);
+        bool check;
+        check=Damage(dmg);
+        if(check==true){return true;}
         dmg=Convert.ToInt32(Convert.ToDouble(dmg)*.8);
-        _enemy.Damage(dmg);
+        check=_enemy.Damage(dmg);
+        if(check==true){return true;}
+        return false;
     }
 }
 public class Monster{
@@ -152,7 +171,7 @@ public class Monster{
             return 0;
         }
     }
-    public virtual void Damage(int dmg){
+    public virtual Boolean Damage(int dmg){
         if(dmg<0){dmg=0;}
         _hp=_hp-dmg;
         if(_hp<=0){
@@ -160,9 +179,11 @@ public class Monster{
             if(_hp<0){
                 Console.WriteLine($"{-_hp} points of overkill");
             }
+            return true;
         }
         else{
             Console.WriteLine($"The enemy takes {dmg} damge");
+            return false;
         }
     }
 }
@@ -219,13 +240,13 @@ public class TypeC: Monster{
             return (r.Next(_attack-1, _attack+1));
         }
         else{
-            
+            Console.WriteLine("the monster defends!");
             _counter=0;
             _defense=3;
             return 0;
         }
     }
-    public override void Damage(int dmg){
+    public override Boolean Damage(int dmg){
         dmg=dmg-_defense;
         if(_defense>0){_defense=_defense-1;}
         if(dmg<0){dmg=0;}
@@ -235,9 +256,11 @@ public class TypeC: Monster{
             if(_hp<0){
                 Console.WriteLine($"{-_hp} points of overkill");
             }
+            return true;
         }
         else{
             Console.WriteLine($"The enemy takes {dmg} damge");
+            return false;
         }
     }
 }
